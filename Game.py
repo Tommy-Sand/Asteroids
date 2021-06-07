@@ -31,6 +31,7 @@ class Game:
         self.game_clock = pygame.time.Clock()
         self.FPS = 30
         self.timer = 3000
+        self.main_menu_display = True
         self.continue_game = True
         self.close_clicked = False
         self.size = size 
@@ -42,6 +43,8 @@ class Game:
         self.object_color = pygame.Color('white')
         self.ship = Ship(self.surface, self.center, self.object_color)
         self.ufo = None
+        self.game_over = GameOver(self.surface)
+        self.main_menu = MainMenu(self.surface)
 
         while len(self.asteroid_list) < 6:
             asteroid = Asteroid(self.surface, double_range(), self.object_color, (random.randint(-5,5), random.randint(-5,5)), 30)
@@ -71,6 +74,14 @@ class Game:
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
                     self.bullet_list.append(self.ship.shoot())
+            if self.main_menu_display == False and event.type == pygame.USEREVENT:
+                self.asteroid_list.append(Asteroid(self.surface, double_range(), pygame.Color("white"), (random.randint(-5,5), random.randint(-5,5)), 30))
+            if self.main_menu_display == False and event.type == pygame.USEREVENT + 1 and self.ufo != None:
+                self.ufo_bullet_list.append(self.ufo.shoot())
+            if self.main_menu_display == False and event.type == pygame.USEREVENT + 2 and self.ufo == None:
+                self.ufo = UFO(self.surface, double_range(), self.object_color, (random.randint(-5,5), random.randint(-5,5)))
+            if self.main_menu_display and 250 <= pygame.mouse.get_pos()[0] <= 250 + self.main_menu.get_rect().right and 400 <= pygame.mouse.get_pos()[1] <= 400 + self.main_menu.get_rect().bottom and event.type == pygame.MOUSEBUTTONUP:
+                self.main_menu_display = False
             if event.type == pygame.USEREVENT:
                 self.asteroid_list.append(Asteroid(self.surface, double_range(), pygame.Color("white"), (random.randint(-5,5), random.randint(-5,5)), 30))
             if event.type == pygame.USEREVENT + 1 and self.ufo != None:
@@ -81,33 +92,139 @@ class Game:
     #This method draws all the constituent parts of the game
     def draw(self):     
         self.surface.fill(self.bg_color)
-        self.scoreboard.render()
-        self.ship.draw()
-    
-        if self.ufo != None:
-            self.ufo.draw()
+
+        if self.main_menu_display:
+            rectangle = self.main_menu.render()
+            rectangle.topleft = (250, 400)
+            if self.main_menu_display and 250 <= pygame.mouse.get_pos()[0] <= 250 + self.main_menu.get_rect().right and 400 <= pygame.mouse.get_pos()[1] <= 400 + self.main_menu.get_rect().bottom:
+                pygame.draw.rect(self.surface, pygame.Color("white"), rectangle, width = 3)
+
+        elif not self.main_menu_display:
+            self.scoreboard.render()
+            self.ship.draw()
         
-        for i in self.bullet_list:
-            i.draw()
+            if self.ufo != None:
+                self.ufo.draw()
+            
+            for i in self.bullet_list:
+                i.draw()
 
-        for i in self.ufo_bullet_list:
-            i.draw()
+            for i in self.ufo_bullet_list:
+                i.draw()
 
-        for i in self.asteroid_list:
-            i.draw()
+            for i in self.asteroid_list:
+                i.draw()
 
-        for i in self.bullet_list:
-            for j in self.asteroid_list:
-                if j.collision_bullet(i) != None:
-                    self.to_be_removed.append(i)
-                    self.asteroid_to_be_removed.append(j)
-                    self.asteroid_list = self.asteroid_list + j.collision_bullet(i)
-                    self.scoreboard.increment(j)
+            for i in self.bullet_list:
+                for j in self.asteroid_list:
+                    if j.collision_bullet(i) != None:
+                        self.to_be_removed.append(i)
+                        self.asteroid_to_be_removed.append(j)
+                        self.asteroid_list = self.asteroid_list + j.collision_bullet(i)
+                        self.scoreboard.increment(j)
+
+            if not self.continue_game:
+                self.game_over.render()
 
         pygame.display.flip()
     #This method updates the surface 
     def update(self):
         # Update all of our game's objects
+        if self.main_menu_display == False:
+            self.scoreboard.render()
+            self.ship.move()
+            self.ship.acceleration_correction()
+            self.ship.velocity_move()
+            self.ship.collision()
+            if self.ufo != None:
+                self.ufo.move()
+                self.ufo.collision_ship(self.ship)
+                self.ufo.collision()
+            for i in self.asteroid_list:
+                i.collision()
+                i.move()
+
+            self.to_be_removed = []
+            #Removes the ship's bullets that leave screen
+            for i in self.bullet_list:
+                if -100 < i.start_point[0] < 900 and -100 < i.start_point[1] < 900:
+                    i.move()
+                else:
+                    self.to_be_removed.append(i)
+
+            #Removes the ufo's bullets that leave the screen
+            for i in self.ufo_bullet_list:
+                if -100 < i.start_point[0] < 900 and -100 < i.start_point[1] < 900:
+                    i.move()
+                else:
+                    self.to_be_removed.append(i)
+
+            self.asteroid_to_be_removed = []
+            #For every bullet checks if the bullet collides with the ufo or with every asteroid
+            for i in self.bullet_list:
+                if self.ufo != None and self.ufo.collision_bullet(i) != None:
+                    self.ufo = None
+                    self.scoreboard.score += 500
+                for j in self.asteroid_list:
+                    if j.collision_bullet(i) != None:
+                        self.to_be_removed.append(i)
+                        self.asteroid_to_be_removed.append(j)
+                        self.asteroid_list = self.asteroid_list + j.collision_bullet(i)
+                        self.scoreboard.increment(j)
+
+            #For every ufo bullet check if it hits the ship or if it hits an asteroid 
+            for i in self.ufo_bullet_list:
+                a = self.ship.collision_bullet(i)
+                if a:
+                    self.continue_game = not a
+                for j in self.asteroid_list:
+                    if j.collision_bullet(i) != None:
+                        self.to_be_removed.append(i)
+                        self.asteroid_to_be_removed.append(j)
+                        self.asteroid_list = self.asteroid_list + j.collision_bullet(i)
+
+            #For every asteroid checks if it hit and asteroid or a bullet 
+            for i in self.asteroid_list:
+                if self.ufo != None and i.collision_UFO(self.ufo) != None:
+                    self.asteroid_to_be_removed.append(i)
+                    self.asteroid_list = self.asteroid_list + i.collision_UFO(self.ufo)
+
+            if self.ufo != None:
+                b = self.ufo.collision_ship(self.ship)
+            if self.ufo != None and b:
+                self.continue_game = not self.ufo.collision_ship(self.ship)
+
+            for i in self.to_be_removed:
+                if i in self.bullet_list:
+                    self.bullet_list.remove(i)
+            
+            for i in self.asteroid_to_be_removed:
+                if i in self.asteroid_list:
+                    self.asteroid_list.remove(i)
+
+            self.to_be_removed = []
+            self.asteroid_to_be_removed = []
+
+            if len(self.asteroid_list) >= 10 and self.timer == 3000:
+                self.timer = 0
+                pygame.time.set_timer(pygame.USEREVENT, self.timer)
+            elif len(self.asteroid_list) < 10 and self.timer == 0:
+                self.timer = 3000
+                pygame.time.set_timer(pygame.USEREVENT, self.timer)
+
+            for i in self.asteroid_list:
+                c = i.collision_ship(self.ship)
+                if c:
+                    self.continue_game = not c
+
+            if pygame.key.get_pressed()[119] == 1:
+                self.ship.accelerate(0.6)
+            if pygame.key.get_pressed()[97] == 1:
+                self.ship.rotate(5)
+                self.ship.mask_update()
+            if pygame.key.get_pressed()[100] == 1:
+                self.ship.rotate(-5)
+                self.ship.mask_update()
         self.scoreboard.render()
         self.ship.move()
         self.ship.acceleration_correction()
@@ -207,7 +324,6 @@ class Game:
      
 #This class specifies the creation of a scoreboard
 class Scoreboard:
-    
     def __init__(self, surface):
         self.surface = surface
         self.score = 0
@@ -222,6 +338,41 @@ class Scoreboard:
         text_image = text_font.render(text_string1, True, text_color)
         text_pos1 = (0, 0)
         self.surface.blit(text_image, text_pos1)
+
+#remove and make it a function
+class GameOver:
+    def __init__(self, surface):
+        self.surface = surface
+    def render(self):
+        text_string1 = "GAME OVER"
+        text_color = pygame.Color("white")
+        text_font = pygame.font.SysFont('arial MT', 96)
+        text_image = text_font.render(text_string1, True, text_color)
+        text_pos1 = (250,250)
+        self.surface.blit(text_image, text_pos1)
+
+class MainMenu:
+    def __init__(self, surface):
+        self.surface = surface 
+    def render(self):
+        text_string1 = "ASTEROIDS"
+        text_color = pygame.Color('white')
+        text_font = pygame.font.SysFont("arial MT", 106)
+        text_image = text_font.render(text_string1, True, text_color)
+        text_pos1 = (200,200)
+        self.surface.blit(text_image, text_pos1)
+        text_string2 = "Play Game"
+        text_font = pygame.font.SysFont("arial MT", 70)
+        text_image = text_font.render(text_string2, True, text_color)
+        text_pos2 = (250,400)
+        self.surface.blit(text_image, text_pos2)
+        return text_image.get_rect()
+    def get_rect(self):
+        text_string2 = "Play Game"
+        text_font = pygame.font.SysFont("arial MT", 70)
+        text_color = pygame.Color('white')
+        text_image = text_font.render(text_string2, True, text_color)
+        return text_image.get_rect()
 
 class Ship(pygame.sprite.Sprite):
         def __init__(self, surface, center, color):
@@ -274,13 +425,13 @@ class Ship(pygame.sprite.Sprite):
                 self.velocity_correction()
             
         def velocity_correction(self):
-            if self.velocity[0] > 0:
+            if self.velocity[0] > 0 and round(self.velocity[0],2) != 0:
                 self.velocity[0] -= self.velocity[0]/5
-            elif self.velocity[0] < 0:
+            elif self.velocity[0] < 0 and round(self.velocity[0],2) != 0:
                 self.velocity[0] += -(self.velocity[0]/5)
-            if self.velocity[1] > 0:
+            if self.velocity[1] > 0 and round(self.velocity[1],2) != 0:
                 self.velocity[1] -= self.velocity[1]/5
-            elif self.velocity[1] < 0:
+            elif self.velocity[1] < 0 and round(self.velocity[1],2) != 0:
                 self.velocity[1] += -(self.velocity[1]/5)
 
         def velocity_move(self):
@@ -381,18 +532,22 @@ class Asteroid(pygame.sprite.Sprite):
             offset_asteroid = (int(self.position[0] - bullet.start_point[0] + self.radius), int(self.position[1] - bullet.start_point[1] + self.radius))
         overlap_asteroid = self.mask.overlap(bullet.mask, offset_asteroid)
         if overlap_asteroid != None and self.radius > 15:
-            asteroid1 = Asteroid(self.surface, (self.position[0] + 50*math.cos(math.pi * (bullet.angle - 90)/180), self.position[1] - 50*math.sin(math.pi * (bullet.angle - 90)/180)), self.color, self.calculate_velocity(bullet, True), self.radius//2)
-            asteroid2 = Asteroid(self.surface, (self.position[0] + 50*math.cos(math.pi * (bullet.angle + 90)/180), self.position[1] - 50*math.sin(math.pi * (bullet.angle + 90)/180)), self.color, self.calculate_velocity(bullet, False), self.radius//2)
+            asteroid1 = Asteroid(self.surface, (self.position[0] + 10*math.cos(math.pi * (bullet.angle - 90)/180), self.position[1] - 10*math.sin(math.pi * (bullet.angle - 90)/180)), self.color, self.calculate_velocity(bullet, True), self.radius//2)
+            asteroid2 = Asteroid(self.surface, (self.position[0] + 10*math.cos(math.pi * (bullet.angle + 90)/180), self.position[1] - 10*math.sin(math.pi * (bullet.angle + 90)/180)), self.color, self.calculate_velocity(bullet, False), self.radius//2)
             return [asteroid1, asteroid2]
         elif overlap_asteroid != None and self.radius == 15:
+            asteroid1 = Asteroid(self.surface, (self.position[0] + 10*math.cos(math.pi * (bullet.angle - 90)/180), self.position[1] - 10*math.sin(math.pi * (bullet.angle - 90)/180)), self.color, self.calculate_velocity(bullet, True), 10)
+            asteroid2 = Asteroid(self.surface, (self.position[0] + 10*math.cos(math.pi * (bullet.angle + 90)/180), self.position[1] - 10*math.sin(math.pi * (bullet.angle + 90)/180)), self.color, self.calculate_velocity(bullet, False), 10)
+            return [asteroid1, asteroid2]
+        elif overlap_asteroid != None and self.radius < 15:
             return []
 
     def collision_UFO(self, ufo):
         offset_asteroid = (int(self.position[0] - ufo.position[0] + 10), int(self.position[1] - ufo.position[1]))
         overlap_asteroid = self.mask.overlap(ufo.mask, offset_asteroid)
         if overlap_asteroid != None and self.radius > 15:
-            asteroid1 = Asteroid(self.surface, (self.position[0] + 50*math.cos(math.pi * (ufo.angle - 90)/180), self.position[1] - 50*math.sin(math.pi * (ufo.angle - 90)/180)), self.color, self.calculate_velocity(ufo, True), self.radius//2)
-            asteroid2 = Asteroid(self.surface, (self.position[0] + 50*math.cos(math.pi * (ufo.angle + 90)/180), self.position[1] - 50*math.sin(math.pi * (ufo.angle + 90)/180)), self.color, self.calculate_velocity(ufo, False), self.radius//2)
+            asteroid1 = Asteroid(self.surface, (self.position[0] + 10*math.cos(math.pi * (ufo.angle - 90)/180), self.position[1] - 10*math.sin(math.pi * (ufo.angle - 90)/180)), self.color, self.calculate_velocity(ufo, True), self.radius//2)
+            asteroid2 = Asteroid(self.surface, (self.position[0] + 10*math.cos(math.pi * (ufo.angle + 90)/180), self.position[1] - 10*math.sin(math.pi * (ufo.angle + 90)/180)), self.color, self.calculate_velocity(ufo, False), self.radius//2)
             return [asteroid1, asteroid2]
         elif overlap_asteroid != None and self.radius == 15:
             return []
@@ -482,3 +637,4 @@ def double_range():
     return random.choice(a)
 
 main()
+
