@@ -252,27 +252,34 @@ class Asteroid(pygame.sprite.Sprite):
 
     def collision_bullet(self, bullet):
         if self.radius == 30:
-            offset_asteroid = (int(bullet.start_point[0] - (self.position[0] + self.radius//2) + 5), int(bullet.start_point[1] - (self.position[1] + (self.radius//2)) + 5))
+
+            offset_asteroid = self.calculate_bullet_offset(bullet, 5)
         elif self.radius == 20:
-            offset_asteroid = (int(bullet.start_point[0] - (self.position[0] + (self.radius//2) + 10)), int(bullet.start_point[1] - (self.position[1] + (self.radius//2) + 10)))
+            offset_asteroid = self.calculate_bullet_offset(bullet, 10)
         else:
-            offset_asteroid = (int(bullet.start_point[0] - (self.position[0] + (self.radius//2) + 15)), int(bullet.start_point[1] - (self.position[1] + (self.radius//2) + 15)))
+            offset_asteroid = self.calculate_bullet_offset(bullet, 15)
         overlap_asteroid = self.mask.overlap(bullet.mask, offset_asteroid)
         if overlap_asteroid != None and self.radius > 15:
             temp = []
-            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, (self.position[0] + 10*math.cos(math.pi * (bullet.angle - 30)/180), self.position[1] - 10*math.sin(math.pi * (bullet.angle - 30)/180)), self.calculate_velocity(bullet, True)))
-            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, (self.position[0] + 10*math.cos(math.pi * (bullet.angle + 30)/180), self.position[1] - 10*math.sin(math.pi * (bullet.angle + 30)/180)), self.calculate_velocity(bullet, False)))
+            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, self.calculate_position(bullet, direction = -1), self.calculate_velocity(bullet, True)))
+            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, self.calculate_position(bullet), self.calculate_velocity(bullet, False)))
             return temp
         elif overlap_asteroid != None and self.radius < 15:
             return []
+
+    def calculate_bullet_offset(self, object, offsets_offset):
+        return (int(object.start_point[0] - (self.position[0] + self.radius//2) + offsets_offset), int(object.start_point[1] - (self.position[1] + (self.radius//2)) + offsets_offset))
+
+    def calculate_position(self, object, direction = 1):
+        return (self.position[0] + 10*math.cos(math.pi * (object.angle + (direction * 30))/180), self.position[1] - 10*math.sin(math.pi * (object.angle + (direction * 30))/180))
 
     def collision_UFO(self, ufo):
         offset_asteroid = (int(ufo.position[0] - self.position[0]), int(ufo.position[1] - self.position[1]))
         overlap_asteroid = self.mask.overlap(ufo.mask, offset_asteroid)
         if overlap_asteroid != None and self.radius > 15:
             temp = []
-            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, (self.position[0] + 10*math.cos(math.pi * (ufo.angle - 30)/180), self.position[1] - 10*math.sin(math.pi * (ufo.angle - 30)/180)), self.calculate_velocity(ufo, True)))
-            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, (self.position[0] + 10*math.cos(math.pi * (ufo.angle + 30)/180), self.position[1] - 10*math.sin(math.pi * (ufo.angle + 30)/180)), self.calculate_velocity(ufo, False)))
+            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, calculate_position(ufo, direction = -1), self.calculate_velocity(ufo, True)))
+            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, calculate_position(ufo), self.calculate_velocity(ufo, False)))
             return temp
         elif overlap_asteroid != None:
             return []
@@ -415,8 +422,6 @@ def main():
         for event in pygame.event.get():
             if (event.type == pygame.QUIT) or (event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE):
                 close_clicked = True
-            # if event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
-                # close_clicked = True
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 bullet_list.append(ship.shoot())
             if main_menu_display == False:
@@ -465,7 +470,7 @@ def main():
         ''' The end of the render portion of the main function'''
 
         if continue_game and main_menu_display == False:
-            scoreboard.render()
+
             ship.move()
             ship.acceleration_correction()
             ship.velocity_move()
