@@ -97,7 +97,7 @@ class MainMenu:
         return (text_pos2[0], text_pos2[0] + text_image.get_rect().width, text_pos2[1], text_pos2[1] + text_image.get_rect().height)
 
 class Ship(pygame.sprite.Sprite):
-        def __init__(self, surface, center, color, lives = 3):
+        def __init__(self, surface, center, color, lives = 100):
             pygame.sprite.Sprite.__init__(self)
             self.surface = surface
             self.color = color
@@ -407,11 +407,11 @@ def main():
     game_over = GameOver(surface)
     main_menu = MainMenu(surface)
 
-    while len(asteroid_list) < 6:
-        asteroid_list.append(create_asteroid(surface, object_color, 30, double_range(size), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2)))))
+    # while len(asteroid_list) < 6:
+    #     asteroid_list.append(create_asteroid(surface, object_color, 30, double_range(size), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2)))))
 
-    if len(asteroid_list) < 10:
-        pygame.time.set_timer(pygame.USEREVENT, timer)
+    # if len(asteroid_list) < 10:
+    #     pygame.time.set_timer(pygame.USEREVENT, timer)
 
     pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
     pygame.time.set_timer(pygame.USEREVENT + 2, 10000)
