@@ -73,6 +73,7 @@ class Ship(pygame.sprite.Sprite):
             pygame.draw.polygon(self.SHIP, self.color, self.polygon)
             self.mask = pygame.mask.from_surface(self.SHIP)
 
+            #self.image = pygame.image.load("ship.jpg")
 
         def rotate(self, angle):
             for i in range(0, 3):
@@ -87,6 +88,7 @@ class Ship(pygame.sprite.Sprite):
 
         def draw(self):
             self.surface.blit(self.SHIP,(int(self.center[0]), int(self.center[1])))
+            #self.surface.blit(self.image,(0,0))
             
         def accelerate(self, acceleration):
             self.acceleration = [self.acceleration[0] + acceleration*math.cos(math.pi*(self.angle[0]/180)), self.acceleration[1] - acceleration*math.sin(math.pi*(self.angle[0]/180))]
@@ -100,21 +102,23 @@ class Ship(pygame.sprite.Sprite):
                 self.acceleration[1] -= self.acceleration[1]/5
             elif self.acceleration[1] < 0:
                 self.acceleration[1] += -(self.acceleration[1]/5)
-            if round(self.acceleration[0],4) or round(self.acceleration[1],4):
-                self.velocity_correction()
+            self.velocity_correction()
             
         def velocity_correction(self):
-            if self.velocity[0] > 0 and round(self.velocity[0],2) != 0:
-                self.velocity[0] -= self.velocity[0]/5
-            elif self.velocity[0] < 0 and round(self.velocity[0],2) != 0:
-                self.velocity[0] += -(self.velocity[0]/5)
-            if self.velocity[1] > 0 and round(self.velocity[1],2) != 0:
-                self.velocity[1] -= self.velocity[1]/5
-            elif self.velocity[1] < 0 and round(self.velocity[1],2) != 0:
-                self.velocity[1] += -(self.velocity[1]/5)
+            if self.velocity[0] > 0:
+                self.velocity[0] -= self.velocity[0]/20
+            elif self.velocity[0] < 0:
+                self.velocity[0] += -(self.velocity[0]/20)
+            if self.velocity[1] > 0:
+                self.velocity[1] -= self.velocity[1]/20
+            elif self.velocity[1] < 0:
+                self.velocity[1] += -(self.velocity[1]/20)
 
         def velocity_move(self):
             self.velocity = [self.velocity[0] + self.acceleration[0], self.velocity[1] + self.acceleration[1]]
+            
+        def hyperspace(self):
+            self.center = (random.randint(0,size[0]), random.randint(0,size[1]))
 
         def move(self):
             self.center = (self.center[0] + self.velocity[0], self.center[1] + self.velocity[1])
@@ -133,9 +137,9 @@ class Ship(pygame.sprite.Sprite):
 
         def collision(self):
             if self.center[1] <= 0:
-                self.center = (self.center[0], 750)
+                self.center = (self.center[0], size[1] - 50)
             if self.center[0] <= 0:
-                self.center = (750, self.center[1])
+                self.center = (size[0] - 50, self.center[1])
             if self.center[1] >= size[1]:
                 self.center = (self.center[0], 0)
             if self.center[0] >= size[0]:
@@ -177,7 +181,7 @@ class Asteroid(pygame.sprite.Sprite):
         self.velocity = velocity
         self.angle = self.angle = (int(math.atan2(velocity[1], velocity[0]))/math.pi) * 180
         self.radius = radius
-        self.width = 3
+        self.width = 1
 
         pygame.sprite.Sprite.__init__(self)
         self.ASTEROID = pygame.Surface((self.radius*2,self.radius*2),pygame.SRCALPHA)
@@ -233,9 +237,9 @@ class Asteroid(pygame.sprite.Sprite):
 
     def collision(self):
             if self.position[1] <= -50:
-                self.position = (self.position[0], 750)
+                self.position = (self.position[0], size[1] - 50)
             if self.position[0] <= -50:
-                self.position = (750, self.position[1])
+                self.position = (size[0] - 50, self.position[1])
             if self.position[1] >= size[1] + 50:
                 self.position = (self.position[0], 0)
             if self.position[0] >= size[0] + 50:
@@ -292,9 +296,9 @@ class UFO(pygame.sprite.Sprite):
 
     def collision(self):
             if self.position[1] <= -50:
-                self.position = (self.position[0], 750)
+                self.position = (self.position[0], size[1] - 50)
             if self.position[0] <= -50:
-                self.position = (750, self.position[1])
+                self.position = (size[0] - 50, self.position[1])
             if self.position[1] >= size[1] + 50:
                 self.position = (self.position[0], 0)
             if self.position[0] >= size[0] + 50:
@@ -326,7 +330,7 @@ def main():
     scoreboard = Scoreboard(surface)
     bg_color = pygame.Color('black')
     game_clock = pygame.time.Clock()
-    FPS = 30
+    FPS = 60
     timer = 3000
     main_menu_display = True
     continue_game = True
@@ -344,7 +348,7 @@ def main():
     main_menu = MainMenu(surface)
 
     while len(asteroid_list) < 6:
-        asteroid = Asteroid(surface, double_range(size), object_color, (random.randint(-5,5), random.randint(-5,5)), 30)
+        asteroid = Asteroid(surface, double_range(size), object_color, (random.randint(-2,2), random.randint(-2,2)), 30)
         asteroid_list.append(asteroid)
 
     if len(asteroid_list) < 10:
@@ -360,18 +364,16 @@ def main():
                 close_clicked = True
             if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 bullet_list.append(ship.shoot())
+            if main_menu_display == False and event.type == pygame.KEYUP and event.key == pygame.K_e:
+                ship.hyperspace()
             if main_menu_display == False and event.type == pygame.USEREVENT:
-                asteroid_list.append(Asteroid(surface, double_range(size), pygame.Color("white"), (random.randint(-5,5), random.randint(-5,5)), 30))
+                asteroid_list.append(Asteroid(surface, double_range(size), pygame.Color("white"), (random.randint(-2,2), random.randint(-2,2)), 30))
             if main_menu_display == False and event.type == pygame.USEREVENT + 1 and ufo != None:
                 ufo_bullet_list.append(ufo.shoot())
             if main_menu_display == False and event.type == pygame.USEREVENT + 2 and ufo == None:
-                ufo = UFO(surface, double_range(size), object_color, (random.randint(-5,5), random.randint(-5,5)))
+                ufo = UFO(surface, double_range(size), object_color, (random.randint(-2,2), random.randint(-2,2)))
             if main_menu_display and 250 <= pygame.mouse.get_pos()[0] <= 250 + main_menu.get_rect().right and 400 <= pygame.mouse.get_pos()[1] <= 400 + main_menu.get_rect().bottom and event.type == pygame.MOUSEBUTTONUP:
                 main_menu_display = False
-            if event.type == pygame.USEREVENT:
-                asteroid_list.append(Asteroid(surface, double_range(size), pygame.Color("white"), (random.randint(-5,5), random.randint(-5,5)), 30))
-            if event.type == pygame.USEREVENT + 2 and ufo == None:
-                ufo = UFO(surface, double_range(size), object_color, (random.randint(-5,5), random.randint(-5,5)))
         
         
         surface.fill(bg_color)
@@ -430,14 +432,14 @@ def main():
                 to_be_removed = []
                 #Removes the ship's bullets that leave screen
                 for i in bullet_list:
-                    if -100 < i.start_point[0] < 900 and -100 < i.start_point[1] < 900:
+                    if -100 < i.start_point[0] < size[0] + 100 and -100 < i.start_point[1] < size[1] + 100:
                         i.move()
                     else:
                         to_be_removed.append(i)
 
                 #Removes the ufo's bullets that leave the screen
                 for i in ufo_bullet_list:
-                    if -100 < i.start_point[0] < 900 and -100 < i.start_point[1] < 900:
+                    if -100 < i.start_point[0] < size[0] + 100 and -100 < i.start_point[1] < size[1] + 100:
                         i.move()
                     else:
                         to_be_removed.append(i)
@@ -501,12 +503,12 @@ def main():
                         continue_game = not c
 
                 if pygame.key.get_pressed()[119] == 1:
-                    ship.accelerate(0.6)
+                    ship.accelerate(0.15)
                 if pygame.key.get_pressed()[97] == 1:
-                    ship.rotate(5)
+                    ship.rotate(6)
                     ship.mask_update()
                 if pygame.key.get_pressed()[100] == 1:
-                    ship.rotate(-5)
+                    ship.rotate(-6)
                     ship.mask_update()
         game_clock.tick(FPS)
 main()
