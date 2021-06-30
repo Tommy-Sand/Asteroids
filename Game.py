@@ -255,7 +255,6 @@ class Asteroid(pygame.sprite.Sprite):
 
     def collision_bullet(self, bullet):
         if self.radius == 30:
-
             offset_asteroid = self.calculate_bullet_offset(bullet, 5)
         elif self.radius == 20:
             offset_asteroid = self.calculate_bullet_offset(bullet, 10)
@@ -427,7 +426,7 @@ def main():
                 if event.type == pygame.KEYUP and event.key == pygame.K_e:
                     ship.hyperspace()
                 if event.type == pygame.USEREVENT:
-                    asteroid_list.append(Asteroid(surface, double_range(size), pygame.Color("white"), (random.randint(-1,1), random.randint(-1,1)), 30))
+                    asteroid_list.append(Asteroid(surface, double_range(size), pygame.Color("white"), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2))), 30))
                 if event.type == pygame.USEREVENT + 1 and ufo != None:
                     ufo_bullet_list.append(ufo.shoot())
                 if event.type == pygame.USEREVENT + 2 and ufo == None:
