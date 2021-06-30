@@ -557,7 +557,7 @@ def main():
                     continue_game = not c
 
             if pygame.key.get_pressed()[119] == 1:
-                ship.accelerate(0.02)
+                ship.accelerate(0.03)
             if pygame.key.get_pressed()[97] == 1:
                 ship.rotate(3)
                 ship.mask_update()
