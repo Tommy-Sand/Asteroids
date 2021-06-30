@@ -189,7 +189,7 @@ class Ship(pygame.sprite.Sprite):
                 self.center = (50, self.center[1])
 
         def shoot(self):
-            return Bullet(self.surface, self.angle[0], (self.center[0] + self.polygon1[0], self.center[1] + self.polygon1[1]), self.color, 10)
+            return Bullet(self.surface, self.angle[0], (self.center[0] + self.polygon1[0], self.center[1] + self.polygon1[1]), self.color)
 
         def add_life(self):
             self.lives += 1
@@ -200,14 +200,13 @@ class Ship(pygame.sprite.Sprite):
             print(self.lives)
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, surface, angle, position, color, length):
+    def __init__(self, surface, angle, position, color):
         pygame.sprite.Sprite.__init__(self)
         self.surface = surface
         self.angle = angle
         self.position = position
         self.color = color
-        self.length = length
-        self.velocity = 10
+        self.velocity = 1
         self.x_coeff = math.cos(math.pi * (self.angle/180))
         self.y_coeff = math.sin(math.pi * (self.angle/180))
         self.radius = 5
@@ -344,7 +343,7 @@ class UFO(pygame.sprite.Sprite):
                 self.angle = random.randint(0,360)
 
     def shoot(self):
-        return Bullet(self.surface, random.randint(0,360), (self.position[0] + (self.UFO.get_rect().right//2), self.position[1] + 10), self.color, 10)
+        return Bullet(self.surface, random.randint(0,360), (self.position[0] + (self.UFO.get_rect().right//2), self.position[1] + 10), self.color)
 
 def double_range(size):
     a = []
@@ -409,8 +408,12 @@ def main():
 
     # pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
     # pygame.time.set_timer(pygame.USEREVENT + 2, 10000)
-    asteroid_list.append(create_asteroid(surface, object_color, 30, (600,600), (0,0)))
+    asteroid_list.append(create_asteroid(surface, object_color, 20, (600,600), (0,0)))
 
+    bullet_list.append(Bullet(surface, 0, (500, 595), object_color))
+    bullet_list.append(Bullet(surface, 0, (500, 640), object_color))
+    bullet_list.append(Bullet(surface, 270, (600, 500), object_color))
+    bullet_list.append(Bullet(surface, 270, (635, 500), object_color))
     while not close_clicked:
         '''Handles Pygame events from keyboard and those that are automatically setup'''
         pygame.key.set_repeat(1)

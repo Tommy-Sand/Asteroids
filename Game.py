@@ -53,7 +53,6 @@ class Scoreboard:
             ship.add_life()
             self.number_of_ships += 1
             self.lives_score -= 10000
-            print("added life")
 
     def remove_life(self, ship):
         self.number_of_ships -= 1
@@ -249,14 +248,13 @@ class Asteroid(pygame.sprite.Sprite):
         return ship_rebirth(overlap_asteroid, ship, scoreboard, ufo)
 
     def calculate_bullet_offset(self, object, offsets_offset):
-        return (int(object.position[0] - (self.position[0] + self.radius//2) + offsets_offset), int(object.position[1] - (self.position[1] + (self.radius//2)) + offsets_offset))
+        return (int(object.position[0] - self.position[0]), int(object.position[1] - self.position[1]))
 
     def calculate_position(self, object, direction = 1):
         return (self.position[0] + 10*math.cos(math.pi * (object.angle + (direction * 30))/180), self.position[1] - 10*math.sin(math.pi * (object.angle + (direction * 30))/180))
 
     def collision_bullet(self, bullet):
         if self.radius == 30:
-
             offset_asteroid = self.calculate_bullet_offset(bullet, 5)
         elif self.radius == 20:
             offset_asteroid = self.calculate_bullet_offset(bullet, 10)
@@ -428,7 +426,7 @@ def main():
                 if event.type == pygame.KEYUP and event.key == pygame.K_e:
                     ship.hyperspace()
                 if event.type == pygame.USEREVENT:
-                    asteroid_list.append(Asteroid(surface, double_range(size), pygame.Color("white"), (random.randint(-1,1), random.randint(-1,1)), 30))
+                    asteroid_list.append(Asteroid(surface, double_range(size), pygame.Color("white"), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2))), 30))
                 if event.type == pygame.USEREVENT + 1 and ufo != None:
                     ufo_bullet_list.append(ufo.shoot())
                 if event.type == pygame.USEREVENT + 2 and ufo == None:
