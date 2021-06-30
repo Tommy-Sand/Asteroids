@@ -151,13 +151,13 @@ class Ship(pygame.sprite.Sprite):
 
 
         def velocity_correction(self):
-            if self.velocity[0] > abs(math.cos(self.angle[0])):
+            if self.velocity[0] > 0:
                 self.velocity[0] -= self.velocity[0]/20
-            elif self.velocity[0] < -abs(math.cos(self.angle[0])):
+            elif self.velocity[0] < 0:
                 self.velocity[0] += -(self.velocity[0]/20)
-            if self.velocity[1] > abs(math.sin(self.angle[0])):
+            if self.velocity[1] > 0:
                 self.velocity[1] -= self.velocity[1]/20
-            elif self.velocity[1] < -abs(math.sin(self.angle[0])):
+            elif self.velocity[1] < 0:
                 self.velocity[1] += -(self.velocity[1]/20)
 
         def velocity_move(self):
@@ -207,7 +207,7 @@ class Bullet(pygame.sprite.Sprite):
         self.position = position
         self.color = color
         self.length = length
-        self.velocity = 3
+        self.velocity = 10
         self.x_coeff = math.cos(math.pi * (self.angle/180))
         self.y_coeff = math.sin(math.pi * (self.angle/180))
         self.radius = 5
@@ -248,20 +248,14 @@ class Asteroid(pygame.sprite.Sprite):
         overlap_asteroid = self.mask.overlap(ship.mask, offset_asteroid)
         return ship_rebirth(overlap_asteroid, ship, scoreboard, ufo)
 
-    def calculate_bullet_offset(self, object, offsets_offset):
-        return (int(object.position[0] - (self.position[0] + self.radius//2) + offsets_offset), int(object.position[1] - (self.position[1] + (self.radius//2)) + offsets_offset))
+    def calculate_bullet_offset(self, object):
+        return (int(object.position[0] - (self.position[0])), int(object.position[1] - (self.position[1])))
 
     def calculate_position(self, object, direction = 1):
         return (self.position[0] + 10*math.cos(math.pi * (object.angle + (direction * 30))/180), self.position[1] - 10*math.sin(math.pi * (object.angle + (direction * 30))/180))
 
     def collision_bullet(self, bullet):
-        if self.radius == 30:
-
-            offset_asteroid = self.calculate_bullet_offset(bullet, 5)
-        elif self.radius == 20:
-            offset_asteroid = self.calculate_bullet_offset(bullet, 10)
-        else:
-            offset_asteroid = self.calculate_bullet_offset(bullet, 15)
+        offset_asteroid = self.calculate_bullet_offset(bullet)
         overlap_asteroid = self.mask.overlap(bullet.mask, offset_asteroid)
         if overlap_asteroid != None and self.radius > 15:
             temp = []
@@ -330,7 +324,7 @@ class UFO(pygame.sprite.Sprite):
         return ship_rebirth(overlap_ship, ship, scoreboard, ufo)
 
     def collision_bullet(self, bullet):
-        offset_asteroid = (int(bullet.position[0] - self.position[0] - 15), int(bullet.position[1] - self.position[1] - 15))
+        offset_asteroid = (int(bullet.position[0] - self.position[0]), int(bullet.position[1] - self.position[1]))
         overlap_asteroid = self.mask.overlap(bullet.mask, offset_asteroid)
         if overlap_asteroid != None:
             return overlap_asteroid
@@ -413,8 +407,9 @@ def main():
     # if len(asteroid_list) < 10:
     #     pygame.time.set_timer(pygame.USEREVENT, timer)
 
-    pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
-    pygame.time.set_timer(pygame.USEREVENT + 2, 10000)
+    # pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
+    # pygame.time.set_timer(pygame.USEREVENT + 2, 10000)
+    asteroid_list.append(create_asteroid(surface, object_color, 30, (600,600), (0,0)))
 
     while not close_clicked:
         '''Handles Pygame events from keyboard and those that are automatically setup'''
@@ -561,10 +556,10 @@ def main():
             if pygame.key.get_pressed()[119] == 1:
                 ship.accelerate(0.02)
             if pygame.key.get_pressed()[97] == 1:
-                ship.rotate(3)
+                ship.rotate(1)
                 ship.mask_update()
             if pygame.key.get_pressed()[100] == 1:
-                ship.rotate(-3)
+                ship.rotate(-1)
                 ship.mask_update()
         game_clock.tick(FPS)
 

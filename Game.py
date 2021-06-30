@@ -207,7 +207,7 @@ class Bullet(pygame.sprite.Sprite):
         self.position = position
         self.color = color
         self.length = length
-        self.velocity = 3
+        self.velocity = 10
         self.x_coeff = math.cos(math.pi * (self.angle/180))
         self.y_coeff = math.sin(math.pi * (self.angle/180))
         self.radius = 5
