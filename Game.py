@@ -53,7 +53,6 @@ class Scoreboard:
             ship.add_life()
             self.number_of_ships += 1
             self.lives_score -= 10000
-            print("added life")
 
     def remove_life(self, ship):
         self.number_of_ships -= 1
@@ -249,7 +248,7 @@ class Asteroid(pygame.sprite.Sprite):
         return ship_rebirth(overlap_asteroid, ship, scoreboard, ufo)
 
     def calculate_bullet_offset(self, object, offsets_offset):
-        return (int(object.position[0] - (self.position[0] + self.radius//2) + offsets_offset), int(object.position[1] - (self.position[1] + (self.radius//2)) + offsets_offset))
+        return (int(object.position[0] - self.position[0]), int(object.position[1] - self.position[1]))
 
     def calculate_position(self, object, direction = 1):
         return (self.position[0] + 10*math.cos(math.pi * (object.angle + (direction * 30))/180), self.position[1] - 10*math.sin(math.pi * (object.angle + (direction * 30))/180))
