@@ -18,11 +18,13 @@ class Scoreboard:
         self.number_of_ships = 3
         self.start = (1600,0)
         self.create_lives()
-    #This method increments the scoreboard by one
+
+    #This method increments the scoreboard by the amount
     def increment(self, amount, ship):
         self.score += amount
         self.lives_score += amount
         self.add_life(ship)
+
     #This method renders the scoreboard on the surface
     def render(self):
         text_string1 = str(self.score)
@@ -87,6 +89,7 @@ class MainMenu:
         text_pos2 = ((self.surface.get_width()//2) - (text_image.get_width()//2),(self.surface.get_height()//2) - (text_image.get_height()//2))
         self.surface.blit(text_image, text_pos2)
         return text_image.get_rect()
+
     def get_rect(self):
         text_string2 = "Play Game"
         text_font = pygame.font.SysFont("arial MT", 70)
@@ -147,7 +150,6 @@ class Ship(pygame.sprite.Sprite):
             elif self.acceleration[1] < 0:
                 self.acceleration[1] += -(self.acceleration[1]/8)
             self.velocity_correction()
-
 
         def velocity_correction(self):
             if self.velocity[0] > abs(math.cos(self.angle[0])):
