@@ -1,7 +1,8 @@
 import math, pygame, random
+import bullet_file
 
 class Ship(pygame.sprite.Sprite):
-    def __init__(self, surface, center, color, lives = 3):
+    def __init__(self, surface, center, color, size, lives = 3):
         pygame.sprite.Sprite.__init__(self)
         self.surface = surface
         self.color = color
@@ -10,8 +11,8 @@ class Ship(pygame.sprite.Sprite):
         self.acceleration = [0, 0]
         self.length = [10, 7, 7, 10]
         self.angle = [90, 225, 315]
+        self.size = size
         self.center = center
-        self.size = surface
         self.thruster = False
         self.polygon1 = (int(10 + self.length[0]*math.cos(math.pi*self.angle[0]/180)), int(10 - self.length[0]*math.sin(math.pi*self.angle[0]/180)))
         self.polygon2 = (int(10 + self.length[1]*math.cos(math.pi*self.angle[1]/180)), int(10 - self.length[1]*math.sin(math.pi*self.angle[1]/180)))
@@ -68,7 +69,7 @@ class Ship(pygame.sprite.Sprite):
         self.velocity = [self.velocity[0] + self.acceleration[0], self.velocity[1] + self.acceleration[1]]
 
     def hyperspace(self):
-        self.center = (random.randint(0,size[0]), random.randint(0,size[1]))
+        self.center = (random.randint(0,self.size[0]), random.randint(0,self.size[1]))
 
     def move(self):
         self.center = (self.center[0] + self.velocity[0], self.center[1] + self.velocity[1])
@@ -77,28 +78,28 @@ class Ship(pygame.sprite.Sprite):
         self.polygon4 = (int(10 + self.length[2]*math.cos(math.pi*self.angle[2]/180)), int(10 - self.length[2]*math.sin(math.pi*self.angle[2]/180)))
         self.polygon = (self.polygon1, self.polygon2, (10,10), self.polygon4)
 
-    def collision_bullet(self, bullet, scoreboard, ufo):
+    def collision_bullet(self, bullet):
         offset_bullet = (int(self.center[0] - bullet.position[0]), int(self.center[1] - bullet.position[1]))
         overlap_bullet = self.mask.overlap(bullet.mask, offset_bullet)
-        return ship_rebirth(overlap_bullet, self, scoreboard, ufo)
+        return overlap_bullet
 
     def collision(self):
         if self.center[1] <= 0:
-            self.center = (self.center[0], size[1] - 50)
+            self.center = (self.center[0], self.size[1] - 50)
         if self.center[0] <= 0:
-            self.center = (size[0] - 50, self.center[1])
-        if self.center[1] >= size[1]:
+            self.center = (self.size[0] - 50, self.center[1])
+        if self.center[1] >= self.size[1]:
             self.center = (self.center[0], 0)
-        if self.center[0] >= size[0]:
+        if self.center[0] >= self.size[0]:
             self.center = (50, self.center[1])
 
     def shoot(self):
-        return Bullet(self.surface, self.angle[0], (self.center[0] + self.polygon1[0], self.center[1] + self.polygon1[1]), self.color, 10)
+        return bullet_file.Bullet(self.surface, self.angle[0], (self.center[0] + self.polygon1[0], self.center[1] + self.polygon1[1]), self.color, 4)
 
     def add_life(self):
         self.lives += 1
 
     def rebirth(self, scoreboard):
-        self.__init__(self.surface, (size[0]//2, size[1]//2), pygame.Color("white"), self.lives - 1)
+        self.__init__(self.surface, (self.size[0]//2, self.size[1]//2), pygame.Color("white"), self.size, self.lives - 1)
         scoreboard.remove_life(self)
         print(self.lives)

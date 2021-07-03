@@ -408,12 +408,14 @@ def main():
 
     # pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
     # pygame.time.set_timer(pygame.USEREVENT + 2, 10000)
-    asteroid_list.append(create_asteroid(surface, object_color, 20, (600,600), (0,0)))
+    asteroid_list.append(create_asteroid(surface, object_color, 30, (770,300), (0,0)))
 
-    bullet_list.append(Bullet(surface, 0, (500, 595), object_color))
-    bullet_list.append(Bullet(surface, 0, (500, 640), object_color))
-    bullet_list.append(Bullet(surface, 270, (600, 500), object_color))
-    bullet_list.append(Bullet(surface, 270, (635, 500), object_color))
+    ufo = UFO(surface, (600,600), object_color, 0)
+
+    # bullet_list.append(Bullet(surface, 0, (500, 595), object_color))
+    # bullet_list.append(Bullet(surface, 0, (500, 640), object_color))
+    # bullet_list.append(Bullet(surface, 270, (600, 500), object_color))
+    # bullet_list.append(Bullet(surface, 270, (635, 500), object_color))
     while not close_clicked:
         '''Handles Pygame events from keyboard and those that are automatically setup'''
         pygame.key.set_repeat(1)
