@@ -12,9 +12,8 @@ class UFO(pygame.sprite.Sprite):
         self.angle = random.randint(0,360)
         self.UFO = pygame.Surface((50,50), pygame.SRCALPHA)
         self.ellipsce_rect = pygame.Rect(0, 25, 50, 25)
-        self.arc_rect = pygame.Rect(13,12,25,25)
         pygame.draw.ellipse(self.UFO, self.color, self.ellipsce_rect)
-        pygame.draw.arc(self.UFO, self.color, self.arc_rect, math.pi * (-10/180), math.pi * (190/180))
+        pygame.draw.circle(self.UFO, self.color, (25,25), 13)
         self.mask = pygame.mask.from_surface(self.UFO)
 
     def draw(self):
