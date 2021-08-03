@@ -54,15 +54,17 @@ class Ship(pygame.sprite.Sprite):
             self.acceleration[1] += -(self.acceleration[1]/8)
         self.velocity_correction()
 
+#Add another variable so that it stores the angle of the last acceleration for angle calculations
+
 
     def velocity_correction(self):
-        if self.velocity[0] > abs(math.cos(self.angle[0])):
+        if self.velocity[0] > abs(math.cos(math.pi*self.angle[0]/180)):
             self.velocity[0] -= self.velocity[0]/20
-        elif self.velocity[0] < -abs(math.cos(self.angle[0])):
+        elif self.velocity[0] < -abs(math.cos(math.pi*self.angle[0]/180)):
             self.velocity[0] += -(self.velocity[0]/20)
-        if self.velocity[1] > abs(math.sin(self.angle[0])):
+        if self.velocity[1] > abs(math.sin(math.pi*self.angle[0]/180)):
             self.velocity[1] -= self.velocity[1]/20
-        elif self.velocity[1] < -abs(math.sin(self.angle[0])):
+        elif self.velocity[1] < -abs(math.sin(math.pi*self.angle[0]/180)):
             self.velocity[1] += -(self.velocity[1]/20)
 
     def velocity_move(self):

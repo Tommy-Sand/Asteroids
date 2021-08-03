@@ -151,14 +151,16 @@ class Ship(pygame.sprite.Sprite):
 
 
         def velocity_correction(self):
-            if self.velocity[0] > 0:
+            if self.velocity[0] > abs(math.cos(math.pi*self.angle[0]/180)):
                 self.velocity[0] -= self.velocity[0]/20
-            elif self.velocity[0] < 0:
+            elif self.velocity[0] < -abs(math.cos(math.pi*self.angle[0]/180)):
                 self.velocity[0] += -(self.velocity[0]/20)
-            if self.velocity[1] > 0:
+            if self.velocity[1] > abs(math.sin(math.pi*self.angle[0]/180)):
                 self.velocity[1] -= self.velocity[1]/20
-            elif self.velocity[1] < 0:
+            elif self.velocity[1] < -abs(math.sin(math.pi*self.angle[0]/180)):
                 self.velocity[1] += -(self.velocity[1]/20)
+            
+            print(self.velocity)
 
         def velocity_move(self):
             self.velocity = [self.velocity[0] + self.acceleration[0], self.velocity[1] + self.acceleration[1]]
@@ -558,12 +560,12 @@ def main():
                     continue_game = not c
 
             if pygame.key.get_pressed()[119] == 1:
-                ship.accelerate(0.02)
+                ship.accelerate(0.03)
             if pygame.key.get_pressed()[97] == 1:
-                ship.rotate(1)
+                ship.rotate(3)
                 ship.mask_update()
             if pygame.key.get_pressed()[100] == 1:
-                ship.rotate(-1)
+                ship.rotate(-3)
                 ship.mask_update()
         game_clock.tick(FPS)
 
