@@ -151,14 +151,16 @@ class Ship(pygame.sprite.Sprite):
 
 
         def velocity_correction(self):
-            if self.velocity[0] > 0:
+            if self.velocity[0] > abs(math.cos(math.pi*self.angle[0]/180)):
                 self.velocity[0] -= self.velocity[0]/20
-            elif self.velocity[0] < 0:
+            elif self.velocity[0] < -abs(math.cos(math.pi*self.angle[0]/180)):
                 self.velocity[0] += -(self.velocity[0]/20)
-            if self.velocity[1] > 0:
+            if self.velocity[1] > abs(math.sin(math.pi*self.angle[0]/180)):
                 self.velocity[1] -= self.velocity[1]/20
-            elif self.velocity[1] < 0:
+            elif self.velocity[1] < -abs(math.sin(math.pi*self.angle[0]/180)):
                 self.velocity[1] += -(self.velocity[1]/20)
+            
+            print(self.velocity)
 
         def velocity_move(self):
             self.velocity = [self.velocity[0] + self.acceleration[0], self.velocity[1] + self.acceleration[1]]
@@ -306,9 +308,8 @@ class UFO(pygame.sprite.Sprite):
         self.angle = random.randint(0,360)
         self.UFO = pygame.Surface((50,50), pygame.SRCALPHA)
         self.ellipsce_rect = pygame.Rect(0, 25, 50, 25)
-        self.arc_rect = pygame.Rect(13,12,25,25)
-        pygame.draw.ellipse(self.UFO, self.color, self.ellipsce_rect, width = 1)
-        pygame.draw.arc(self.UFO, self.color, self.arc_rect, math.pi * (-10/180), math.pi * (190/180), width = 1)
+        pygame.draw.ellipse(self.UFO, self.color, self.ellipsce_rect)
+        pygame.draw.circle(self.UFO, self.color, (25,25), 13)
         self.mask = pygame.mask.from_surface(self.UFO)
 
     def draw(self):
@@ -408,12 +409,14 @@ def main():
 
     # pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
     # pygame.time.set_timer(pygame.USEREVENT + 2, 10000)
-    asteroid_list.append(create_asteroid(surface, object_color, 20, (600,600), (0,0)))
+    asteroid_list.append(create_asteroid(surface, object_color, 30, (770,300), (0,0)))
 
-    bullet_list.append(Bullet(surface, 0, (500, 595), object_color))
-    bullet_list.append(Bullet(surface, 0, (500, 640), object_color))
-    bullet_list.append(Bullet(surface, 270, (600, 500), object_color))
-    bullet_list.append(Bullet(surface, 270, (635, 500), object_color))
+    ufo = UFO(surface, (600,600), object_color, 0)
+
+    # bullet_list.append(Bullet(surface, 0, (500, 595), object_color))
+    # bullet_list.append(Bullet(surface, 0, (500, 640), object_color))
+    # bullet_list.append(Bullet(surface, 270, (600, 500), object_color))
+    # bullet_list.append(Bullet(surface, 270, (635, 500), object_color))
     while not close_clicked:
         '''Handles Pygame events from keyboard and those that are automatically setup'''
         pygame.key.set_repeat(1)
@@ -557,12 +560,12 @@ def main():
                     continue_game = not c
 
             if pygame.key.get_pressed()[119] == 1:
-                ship.accelerate(0.02)
+                ship.accelerate(0.03)
             if pygame.key.get_pressed()[97] == 1:
-                ship.rotate(1)
+                ship.rotate(3)
                 ship.mask_update()
             if pygame.key.get_pressed()[100] == 1:
-                ship.rotate(-1)
+                ship.rotate(-3)
                 ship.mask_update()
         game_clock.tick(FPS)
 
