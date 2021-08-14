@@ -372,6 +372,7 @@ def ship_rebirth(overlap, ship, scoreboard, ufo):
 class small_UFO(UFO):
     def __init__(self, surface, position, color, velocity):
         UFO.__init__(self, surface, position, color, velocity)
+        self.UFO = pygame.Surface((50,50), pygame.SRCALPHA)
         self.ellipsce_rect = pygame.Rect(0, 12, 25, 12)
         pygame.draw.ellipse(self.UFO, self.color, self.ellipsce_rect)
         pygame.draw.circle(self.UFO, self.color, (12,12), 6)
@@ -485,6 +486,8 @@ def main():
             if ufo != None:
                 ufo.move()
                 ufo.collision()
+            if ufo2 != None:
+                ufo2.collision()
             for i in asteroid_list:
                 i.collision()
                 i.move()
@@ -510,6 +513,9 @@ def main():
                 if ufo != None and ufo.collision_bullet(i) != None:
                     ufo = None
                     scoreboard.increment(500, ship)
+                if ufo2 != None and ufo2.collision_bullet(i) != None:
+                    ufo2 = None
+                    scoreboard.increment(1000,ship)
                 for j in asteroid_list:
                     if j.collision_bullet(i) != None:
                         to_be_removed.append(i)
@@ -543,6 +549,13 @@ def main():
                 else:
                     continue_game = True
 
+            if ufo2 != None:
+                bool = ufo2.collision_ship(ship, scoreboard, ufo)
+                if bool:
+                    continue_game = False
+                else:
+                    continue_game = True
+                    
             for i in to_be_removed:
                 if i in bullet_list:
                     bullet_list.remove(i)

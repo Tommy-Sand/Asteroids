@@ -53,6 +53,7 @@ class UFO(pygame.sprite.Sprite):
 class small_UFO(UFO):
     def __init__(self, surface, position, color, velocity, size):
         UFO.__init__(self, surface, position, color, velocity, size)
+        self.UFO = pygame.Surface((50,50), pygame.SRCALPHA)
         self.ellipsce_rect = pygame.Rect(0, 12, 25, 12)
         pygame.draw.ellipse(self.UFO, self.color, self.ellipsce_rect)
         pygame.draw.circle(self.UFO, self.color, (12,12), 6)
