@@ -53,7 +53,6 @@ class Scoreboard:
             ship.add_life()
             self.number_of_ships += 1
             self.lives_score -= 10000
-            print("added life")
 
     def remove_life(self, ship):
         self.number_of_ships -= 1
@@ -159,8 +158,6 @@ class Ship(pygame.sprite.Sprite):
                 self.velocity[1] -= self.velocity[1]/20
             elif self.velocity[1] < -abs(math.sin(math.pi*self.angle[0]/180)):
                 self.velocity[1] += -(self.velocity[1]/20)
-            
-            print(self.velocity)
 
         def velocity_move(self):
             self.velocity = [self.velocity[0] + self.acceleration[0], self.velocity[1] + self.acceleration[1]]
@@ -199,7 +196,6 @@ class Ship(pygame.sprite.Sprite):
         def rebirth(self, scoreboard):
             self.__init__(self.surface, (size[0]//2, size[1]//2), pygame.Color("white"), self.lives - 1)
             scoreboard.remove_life(self)
-            print(self.lives)
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, surface, angle, position, color):
@@ -373,6 +369,15 @@ def ship_rebirth(overlap, ship, scoreboard, ufo):
 
 
 
+class small_UFO(UFO):
+    def __init__(self, surface, position, color, velocity):
+        UFO.__init__(self, surface, position, color, velocity)
+        self.UFO = pygame.Surface((50,50), pygame.SRCALPHA)
+        self.ellipsce_rect = pygame.Rect(0, 12, 25, 12)
+        pygame.draw.ellipse(self.UFO, self.color, self.ellipsce_rect)
+        pygame.draw.circle(self.UFO, self.color, (12,12), 6)
+        self.mask = pygame.mask.from_surface(self.UFO)
+
 def main():
     pygame.init()
     global size
@@ -412,7 +417,7 @@ def main():
     asteroid_list.append(create_asteroid(surface, object_color, 30, (770,300), (0,0)))
 
     ufo = UFO(surface, (600,600), object_color, 0)
-
+    ufo2 = small_UFO(surface, (800,600), object_color, 0)
     # bullet_list.append(Bullet(surface, 0, (500, 595), object_color))
     # bullet_list.append(Bullet(surface, 0, (500, 640), object_color))
     # bullet_list.append(Bullet(surface, 270, (600, 500), object_color))
@@ -453,6 +458,9 @@ def main():
             if ufo != None:
                 ufo.draw()
 
+            if ufo2 != None:
+                ufo2.draw()
+
             for i in bullet_list:
                 i.draw()
 
@@ -478,6 +486,8 @@ def main():
             if ufo != None:
                 ufo.move()
                 ufo.collision()
+            if ufo2 != None:
+                ufo2.collision()
             for i in asteroid_list:
                 i.collision()
                 i.move()
@@ -503,6 +513,9 @@ def main():
                 if ufo != None and ufo.collision_bullet(i) != None:
                     ufo = None
                     scoreboard.increment(500, ship)
+                if ufo2 != None and ufo2.collision_bullet(i) != None:
+                    ufo2 = None
+                    scoreboard.increment(1000,ship)
                 for j in asteroid_list:
                     if j.collision_bullet(i) != None:
                         to_be_removed.append(i)
@@ -536,6 +549,13 @@ def main():
                 else:
                     continue_game = True
 
+            if ufo2 != None:
+                bool = ufo2.collision_ship(ship, scoreboard, ufo)
+                if bool:
+                    continue_game = False
+                else:
+                    continue_game = True
+                    
             for i in to_be_removed:
                 if i in bullet_list:
                     bullet_list.remove(i)

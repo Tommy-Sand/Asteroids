@@ -11,6 +11,7 @@ class Ship(pygame.sprite.Sprite):
         self.acceleration = [0, 0]
         self.length = [10, 7, 7, 10]
         self.angle = [90, 225, 315]
+        self.angle_last_changed = 90
         self.size = size
         self.center = center
         self.thruster = False
@@ -27,6 +28,7 @@ class Ship(pygame.sprite.Sprite):
     def rotate(self, angle):
         for i in range(0, 3):
             self.angle[i] += angle
+        self.angle_last_changed += angle
         self.mask_update()
 
     def mask_update(self):
@@ -58,13 +60,13 @@ class Ship(pygame.sprite.Sprite):
 
 
     def velocity_correction(self):
-        if self.velocity[0] > abs(math.cos(math.pi*self.angle[0]/180)):
+        if self.velocity[0] > abs(math.cos(math.pi*self.angle_last_changed/180)):
             self.velocity[0] -= self.velocity[0]/20
-        elif self.velocity[0] < -abs(math.cos(math.pi*self.angle[0]/180)):
+        elif self.velocity[0] < -abs(math.cos(math.pi*self.angle_last_changed/180)):
             self.velocity[0] += -(self.velocity[0]/20)
-        if self.velocity[1] > abs(math.sin(math.pi*self.angle[0]/180)):
+        if self.velocity[1] > abs(math.sin(math.pi*self.angle_last_changed/180)):
             self.velocity[1] -= self.velocity[1]/20
-        elif self.velocity[1] < -abs(math.sin(math.pi*self.angle[0]/180)):
+        elif self.velocity[1] < -abs(math.sin(math.pi*self.angle_last_changed/180)):
             self.velocity[1] += -(self.velocity[1]/20)
 
     def velocity_move(self):

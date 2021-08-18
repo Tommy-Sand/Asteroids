@@ -39,6 +39,7 @@ def ship_rebirth(overlap, ship, scoreboard, ufo):
 
 
 def main():
+    #Initialization section
     pygame.init()
     global size
     size = (1600, 900)
@@ -74,7 +75,7 @@ def main():
 
     pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
     pygame.time.set_timer(pygame.USEREVENT + 2, 10000)
-
+    #End of initialization section
     while not close_clicked:
         '''Handles Pygame events from keyboard and those that are automatically setup'''
         pygame.key.set_repeat(1)
@@ -90,8 +91,12 @@ def main():
                     asteroid_list.append(asteroids_file.Asteroid(surface, double_range(size), pygame.Color("white"), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2))), 30, size))
                 if event.type == pygame.USEREVENT + 1 and ufo != None:
                     ufo_bullet_list.append(ufo.shoot())
-                if event.type == pygame.USEREVENT + 2 and ufo == None:  
-                    ufo = ufo_file.UFO(surface, double_range(size), object_color, random.choice((random.randint(-2,-1), random.randint(1,2))), size)
+                if event.type == pygame.USEREVENT + 2 and ufo == None:
+                    choice = random.randint(0,1) 
+                    if (choice == 1):
+                        ufo = ufo_file.UFO(surface, double_range(size), object_color, random.choice((random.randint(-2,-1), random.randint(1,2))), size)
+                    else:
+                        ufo = ufo_file.small_UFO(surface, double_range(size), object_color, random.choice((random.randint(-2,-1), random.randint(1,2))), size)
             if main_menu_display and event.type == pygame.MOUSEBUTTONUP and within_bounds(main_menu):
                 main_menu_display = False
         ''' End of handling pygame events '''
@@ -160,7 +165,10 @@ def main():
             for i in bullet_list:
                 if ufo != None and ufo.collision_bullet(i) != None:
                     ufo = None
-                    scoreboard.increment(500, ship)
+                    if type(ufo) is ufo_file.UFO:
+                        scoreboard.increment(500,ship)
+                    else:
+                        scoreboard.increment(1000, ship)
                 for j in asteroid_list:
                     if j.collision_bullet(i) != None:
                         to_be_removed.append(i)

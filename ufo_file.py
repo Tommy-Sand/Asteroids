@@ -49,3 +49,12 @@ class UFO(pygame.sprite.Sprite):
 
     def shoot(self):
         return bullet_file.Bullet(self.surface, random.randint(0,360), (self.position[0] + (self.UFO.get_rect().right//2), self.position[1] + 10), self.color, 4)
+
+class small_UFO(UFO):
+    def __init__(self, surface, position, color, velocity, size):
+        UFO.__init__(self, surface, position, color, velocity, size)
+        self.UFO = pygame.Surface((50,50), pygame.SRCALPHA)
+        self.ellipsce_rect = pygame.Rect(0, 12, 25, 12)
+        pygame.draw.ellipse(self.UFO, self.color, self.ellipsce_rect)
+        pygame.draw.circle(self.UFO, self.color, (12,12), 6)
+        self.mask = pygame.mask.from_surface(self.UFO)
