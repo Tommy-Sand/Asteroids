@@ -1,7 +1,7 @@
 import pygame, math, random
 
-def create_asteroid(surface, object_color, radius, position, velocity):
-    asteroid = Asteroid(surface, position, object_color, velocity, radius)
+def create_asteroid(surface, object_color, scale, position, velocity):
+    asteroid = Asteroid(surface, position, object_color, velocity, scale)
     return(asteroid)
 
 def within_bounds(main_menu):
@@ -220,19 +220,20 @@ class Bullet(pygame.sprite.Sprite):
 
 class Asteroid(pygame.sprite.Sprite):
     ''' Asteroids movement and collision need to be completely rewritten so velocity is distrivuted non-evenly when broken up and smaller asteroids move faster than bigger asteroids'''
-    def __init__(self, surface, position, color, velocity, radius):
+    def __init__(self, surface, position, color, velocity, scale):
         self.surface = surface
         self.position = position
         self.color = color
         self.velocity = velocity
         self.angle = (int(math.atan2(velocity[1], velocity[0]))/math.pi) * 180
-        self.radius = radius
+        self.scale = scale
         self.width = 1
 
         pygame.sprite.Sprite.__init__(self)
-        self.ASTEROID = pygame.Surface((self.radius*2,self.radius*2),pygame.SRCALPHA)
-        pygame.draw.circle(self.ASTEROID, self.color, (self.radius, self.radius), self.radius, self.width)
+        self.ASTEROID = pygame.image.load("image/1.png")
+        self.ASTEROID = pygame.transform.scale(self.ASTEROID,(int(self.scale*self.ASTEROID.get_width()), int(self.scale*self.ASTEROID.get_height())))
         self.mask = pygame.mask.from_surface(self.ASTEROID)
+
 
     def draw(self):
         self.surface.blit(self.ASTEROID, self.position)
@@ -254,23 +255,23 @@ class Asteroid(pygame.sprite.Sprite):
     def collision_bullet(self, bullet):
         offset_asteroid = self.calculate_bullet_offset(bullet)
         overlap_asteroid = self.mask.overlap(bullet.mask, offset_asteroid)
-        if overlap_asteroid != None and self.radius > 15:
+        if overlap_asteroid != None and self.scale > 16/25:
             temp = []
-            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, self.calculate_position(bullet, direction = -1), self.calculate_velocity(bullet, True)))
-            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, self.calculate_position(bullet), self.calculate_velocity(bullet, False)))
+            temp.append(create_asteroid(self.surface, self.color, 4*self.scale/5, self.calculate_position(bullet, direction = -1), self.calculate_velocity(bullet, True)))
+            temp.append(create_asteroid(self.surface, self.color, 4*self.scale/5, self.calculate_position(bullet), self.calculate_velocity(bullet, False)))
             return temp
-        elif overlap_asteroid != None and self.radius < 15:
+        elif overlap_asteroid != None and self.scale <= 16/25:
             return []
 
     def collision_UFO(self, ufo):
         offset_asteroid = (int(ufo.position[0] - self.position[0]), int(ufo.position[1] - self.position[1]))
         overlap_asteroid = self.mask.overlap(ufo.mask, offset_asteroid)
-        if overlap_asteroid != None and self.radius > 15:
+        if overlap_asteroid != None and self.scale >= 16/25:
             temp = []
-            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, self.calculate_position(ufo, direction = -1), self.calculate_velocity(ufo, True)))
-            temp.append(create_asteroid(self.surface, self.color, (2*self.radius)//3, self.calculate_position(ufo), self.calculate_velocity(ufo, False)))
+            temp.append(create_asteroid(self.surface, self.color, 4*self.scale/5, self.calculate_position(ufo, direction = -1), self.calculate_velocity(ufo, True)))
+            temp.append(create_asteroid(self.surface, self.color, 4*self.scale/5, self.calculate_position(ufo), self.calculate_velocity(ufo, False)))
             return temp
-        elif overlap_asteroid != None:
+        elif overlap_asteroid != None and self.scale <= 16/25:
             return []
 
     def collision(self):
@@ -414,7 +415,7 @@ def main():
 
     # pygame.time.set_timer(pygame.USEREVENT + 1, 1000)
     # pygame.time.set_timer(pygame.USEREVENT + 2, 10000)
-    asteroid_list.append(create_asteroid(surface, object_color, 30, (770,300), (0,0)))
+    asteroid_list.append(create_asteroid(surface, object_color, 1, (770,300), (0,0)))
 
     ufo = UFO(surface, (600,600), object_color, 0)
     ufo2 = small_UFO(surface, (800,600), object_color, 0)
@@ -521,7 +522,7 @@ def main():
                         to_be_removed.append(i)
                         asteroid_to_be_removed.append(j)
                         asteroid_list = asteroid_list + j.collision_bullet(i)
-                        scoreboard.increment(j.radius * 100, ship)
+                        scoreboard.increment((1/j.scale) * 100, ship)
 
 
 
