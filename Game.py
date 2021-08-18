@@ -165,7 +165,10 @@ def main():
             for i in bullet_list:
                 if ufo != None and ufo.collision_bullet(i) != None:
                     ufo = None
-                    scoreboard.increment(500, ship)
+                    if type(ufo) is ufo_file.UFO:
+                        scoreboard.increment(500,ship)
+                    else:
+                        scoreboard.increment(1000, ship)
                 for j in asteroid_list:
                     if j.collision_bullet(i) != None:
                         to_be_removed.append(i)
