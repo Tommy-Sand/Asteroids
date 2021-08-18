@@ -9,7 +9,6 @@ class Asteroid(pygame.sprite.Sprite):
         self.velocity = velocity
         self.angle = (int(math.atan2(velocity[1], velocity[0]))/math.pi) * 180
         self.radius = radius
-        #self.width = 1
         self.size = size
 
         pygame.sprite.Sprite.__init__(self)
