@@ -246,6 +246,7 @@ def main():
                     collision_results = i.collision_ship(ship)
                     if collision_results:
                         asteroid_list += i.collision_ship2(ship)
+                        to_be_removed.append(i)
                     end_game = ship_rebirth(collision_results, ship, scoreboard, ufo)
                     if end_game:
                         continue_game = not end_game
