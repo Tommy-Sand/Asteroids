@@ -1,4 +1,6 @@
 import pygame, math, random
+
+from pygame import display
 import asteroids_file
 import gameover_file, scoreboard_file, mainmenu_file, ship_file, ufo_file
 
@@ -55,9 +57,12 @@ def main():
     continue_game = True
     close_clicked = False
     bullet_exists = False
+    display_ship = True
     bullet_list = []
     ufo_bullet_list = []
     global asteroid_list
+    ship_collision = True
+    time = 0
     asteroid_list = []
     center = (width//2, height//2)
     object_color = pygame.Color('white')
@@ -96,6 +101,15 @@ def main():
                         ufo = ufo_file.UFO(surface, double_range(size), object_color, random.choice((random.randint(-2,-1), random.randint(1,2))), size)
                     else:
                         ufo = ufo_file.small_UFO(surface, double_range(size), object_color, random.choice((random.randint(-2,-1), random.randint(1,2))), size)
+                if event.type == pygame.USEREVENT + 3:
+                    display_ship = False
+                    pygame.time.set_timer(pygame.USEREVENT + 4, 2500, True)
+                if event.type == pygame.USEREVENT + 4:
+                    display_ship = True
+                    ship_collision = False
+                    pygame.time.set_timer(pygame.USEREVENT + 5, 2500, True)
+                if event.type == pygame.USEREVENT + 5:
+                    ship_collision = True
             if main_menu_display and event.type == pygame.MOUSEBUTTONUP and within_bounds(main_menu):
                 main_menu_display = False
         ''' End of handling pygame events '''
@@ -110,7 +124,17 @@ def main():
                 pygame.draw.rect(surface, pygame.Color("white"), rect, width = 3)
         elif not main_menu_display:
             scoreboard.render()
-            ship.draw()
+            if ship_collision == False: 
+                time += game_clock.get_time()
+                print(time)
+                if time >= 500:
+                    time = 0
+                elif 300 <= time:
+                    pass
+                else:
+                    ship.draw()
+            elif display_ship == True:
+                ship.draw()
 
             if ufo != None:
                 ufo.draw()
@@ -194,7 +218,7 @@ def main():
                     asteroid_to_be_removed.append(i)
                     asteroid_list = asteroid_list + i.collision_UFO(ufo)
 
-            if ufo != None:
+            if ufo != None and ship_collision:
                 a = ship_rebirth(ufo.collision_ship(ship), ship, scoreboard, ufo)
                 if a:
                     continue_game = False
@@ -217,19 +241,23 @@ def main():
                 timer = 3000
                 pygame.time.set_timer(pygame.USEREVENT, timer)
 
-            for i in asteroid_list:
-                end_game = ship_rebirth(i.collision_ship(ship), ship, scoreboard, ufo)
-                if end_game:
-                    continue_game = not end_game
-
-            if pygame.key.get_pressed()[119] == 1:
-                ship.accelerate(0.03)
-            if pygame.key.get_pressed()[97] == 1:
-                ship.rotate(3)
-                ship.mask_update()
-            if pygame.key.get_pressed()[100] == 1:
-                ship.rotate(-3)
-                ship.mask_update()
+            if ship_collision:
+                for i in asteroid_list:
+                    collision_results = i.collision_ship(ship)
+                    if collision_results:
+                        asteroid_list += i.collision_ship2(ship)
+                    end_game = ship_rebirth(collision_results, ship, scoreboard, ufo)
+                    if end_game:
+                        continue_game = not end_game
+            if display_ship:
+                if pygame.key.get_pressed()[119] == 1:
+                    ship.accelerate(0.03)
+                if pygame.key.get_pressed()[97] == 1:
+                    ship.rotate(3)
+                    ship.mask_update()
+                if pygame.key.get_pressed()[100] == 1:
+                    ship.rotate(-3)
+                    ship.mask_update()
         game_clock.tick(FPS)
 
 main()

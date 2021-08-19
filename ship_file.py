@@ -106,4 +106,4 @@ class Ship(pygame.sprite.Sprite):
     def rebirth(self, scoreboard):
         self.__init__(self.surface, (self.size[0]//2, self.size[1]//2), pygame.Color("white"), self.size, self.lives - 1)
         scoreboard.remove_life(self)
-        print(self.lives)
+        pygame.time.set_timer(pygame.USEREVENT + 3, 1, True)

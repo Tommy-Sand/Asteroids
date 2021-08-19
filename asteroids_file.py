@@ -34,6 +34,9 @@ class Asteroid(pygame.sprite.Sprite):
 
     def calculate_position(self, object, direction = 1):
         return (self.position[0] + 10*math.cos(math.pi * (object.angle + (direction * 30))/180), self.position[1] - 10*math.sin(math.pi * (object.angle + (direction * 30))/180))
+    
+    def calculate_position_for_ship(self, object, direction = 1):
+        return (self.position[0] + 10*math.cos(math.pi * (object.angle[0] + (direction * 30))/180), self.position[1] - 10*math.sin(math.pi * (object.angle[0] + (direction * 30))/180))
 
     def collision_bullet(self, bullet):
         offset_asteroid = self.calculate_bullet_offset(bullet)
@@ -56,6 +59,12 @@ class Asteroid(pygame.sprite.Sprite):
             return temp
         elif overlap_asteroid != None:
             return []
+
+    def collision_ship2(self, ship):
+        temp = []
+        temp.append(Asteroid(self.surface, self.calculate_position_for_ship(ship, direction = -1), self.image_name, self.calculate_velocity(ship, True), (4*self.scale)/5, self.size))
+        temp.append(Asteroid(self.surface, self.calculate_position_for_ship(ship), self.image_name, self.calculate_velocity(ship, False), (4*self.scale)/5, self.size))
+        return temp
 
     def collision(self):
             if self.position[1] <= -30:
