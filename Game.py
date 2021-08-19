@@ -86,10 +86,10 @@ def main():
         for event in pygame.event.get():
             if (event.type == pygame.QUIT) or (event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE):
                 close_clicked = True
-            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE and display_ship:
                 bullet_list.append(ship.shoot())
             if main_menu_display == False:
-                if event.type == pygame.KEYUP and event.key == pygame.K_e:
+                if event.type == pygame.KEYUP and event.key == pygame.K_e and display_ship:
                     ship.hyperspace()
                 if event.type == pygame.USEREVENT:
                     asteroid_list.append(create_asteroid(surface, 1, double_range(size), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2)))))
@@ -103,10 +103,10 @@ def main():
                         ufo = ufo_file.small_UFO(surface, double_range(size), object_color, random.choice((random.randint(-2,-1), random.randint(1,2))), size)
                 if event.type == pygame.USEREVENT + 3:
                     display_ship = False
+                    ship_collision = False
                     pygame.time.set_timer(pygame.USEREVENT + 4, 2500, True)
                 if event.type == pygame.USEREVENT + 4:
                     display_ship = True
-                    ship_collision = False
                     pygame.time.set_timer(pygame.USEREVENT + 5, 2500, True)
                 if event.type == pygame.USEREVENT + 5:
                     ship_collision = True
@@ -124,7 +124,7 @@ def main():
                 pygame.draw.rect(surface, pygame.Color("white"), rect, width = 3)
         elif not main_menu_display:
             scoreboard.render()
-            if ship_collision == False: 
+            if ship_collision == False and display_ship: 
                 time += game_clock.get_time()
                 print(time)
                 if time >= 500:
@@ -199,8 +199,6 @@ def main():
                         asteroid_list = asteroid_list + j.collision_bullet(i)
                         scoreboard.increment(int((1/j.scale) * 300), ship)
 
-
-
             #For every ufo bullet check if it hits the ship or if it hits an asteroid
             for i in ufo_bullet_list:
                 a = ship_rebirth(ship.collision_bullet(i), ship, scoreboard, ufo)
@@ -218,10 +216,20 @@ def main():
                     asteroid_to_be_removed.append(i)
                     asteroid_list = asteroid_list + i.collision_UFO(ufo)
 
-            if ufo != None and ship_collision:
+            if ufo != None and (ship_collision and display_ship):
                 a = ship_rebirth(ufo.collision_ship(ship), ship, scoreboard, ufo)
                 if a:
                     continue_game = False
+
+            if ship_collision and display_ship :
+                for i in asteroid_list:
+                    collision_results = i.collision_ship(ship)
+                    if collision_results:
+                        asteroid_to_be_removed.append(i)
+                        asteroid_list += i.collision_ship2(ship)
+                    end_game = ship_rebirth(collision_results, ship, scoreboard, ufo)
+                    if end_game:
+                        continue_game = not end_game
 
             for i in to_be_removed:
                 if i in bullet_list:
@@ -241,15 +249,6 @@ def main():
                 timer = 3000
                 pygame.time.set_timer(pygame.USEREVENT, timer)
 
-            if ship_collision:
-                for i in asteroid_list:
-                    collision_results = i.collision_ship(ship)
-                    if collision_results:
-                        asteroid_list += i.collision_ship2(ship)
-                        to_be_removed.append(i)
-                    end_game = ship_rebirth(collision_results, ship, scoreboard, ufo)
-                    if end_game:
-                        continue_game = not end_game
             if display_ship:
                 if pygame.key.get_pressed()[119] == 1:
                     ship.accelerate(0.03)

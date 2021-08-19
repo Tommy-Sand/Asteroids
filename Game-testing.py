@@ -373,10 +373,10 @@ def ship_rebirth(overlap, ship, scoreboard, ufo):
 class small_UFO(UFO):
     def __init__(self, surface, position, color, velocity):
         UFO.__init__(self, surface, position, color, velocity)
-        self.UFO = pygame.Surface((50,50), pygame.SRCALPHA)
-        self.ellipsce_rect = pygame.Rect(0, 12, 25, 12)
+        self.UFO = pygame.Surface((50, 50), pygame.SRCALPHA)
+        self.ellipsce_rect = pygame.Rect(0, 17, 30, 17)
         pygame.draw.ellipse(self.UFO, self.color, self.ellipsce_rect)
-        pygame.draw.circle(self.UFO, self.color, (12,12), 6)
+        pygame.draw.circle(self.UFO, self.color, (15,16), 7)
         self.mask = pygame.mask.from_surface(self.UFO)
 
 def main():
