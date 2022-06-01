@@ -1,9 +1,12 @@
 import pygame, math, random
+
+from pygame import display
 import asteroids_file
 import gameover_file, scoreboard_file, mainmenu_file, ship_file, ufo_file
 
-def create_asteroid(surface, object_color, radius, position, velocity):
-    asteroid = asteroids_file.Asteroid(surface, position, object_color, velocity, radius, size)
+def create_asteroid(surface, scale, position, velocity):
+    image_name = random.choice(["image/1.png", "image/2.png", "image/3.png"])
+    asteroid = asteroids_file.Asteroid(surface, position, image_name, velocity, scale, size)
     return(asteroid)
 
 def within_bounds(main_menu):
@@ -12,7 +15,7 @@ def within_bounds(main_menu):
     return False
 
 def double_range(size):
-    a = []
+    a = []  
     b = (random.randint(-50,1), random.randint(0,size[1]))
     c = (random.randint(size[0] + 1, size[0] + 50), random.randint(0,size[1]))
     d = (random.randint(0,size[0]), random.randint(-50,1))
@@ -36,8 +39,6 @@ def ship_rebirth(overlap, ship, scoreboard, ufo):
             ufo.position = double_range(size)
     return False
 
-
-
 def main():
     #Initialization section
     pygame.init()
@@ -56,9 +57,12 @@ def main():
     continue_game = True
     close_clicked = False
     bullet_exists = False
+    display_ship = True
     bullet_list = []
     ufo_bullet_list = []
     global asteroid_list
+    ship_collision = True
+    time = 0
     asteroid_list = []
     center = (width//2, height//2)
     object_color = pygame.Color('white')
@@ -68,7 +72,7 @@ def main():
     main_menu = mainmenu_file.MainMenu(surface)
 
     while len(asteroid_list) < 6:
-        asteroid_list.append(create_asteroid(surface, object_color, 30, double_range(size), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2)))))
+        asteroid_list.append(create_asteroid(surface, 1, double_range(size), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2)))))
 
     if len(asteroid_list) < 10:
         pygame.time.set_timer(pygame.USEREVENT, timer)
@@ -82,13 +86,13 @@ def main():
         for event in pygame.event.get():
             if (event.type == pygame.QUIT) or (event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE):
                 close_clicked = True
-            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE and display_ship:
                 bullet_list.append(ship.shoot())
             if main_menu_display == False:
-                if event.type == pygame.KEYUP and event.key == pygame.K_e:
+                if event.type == pygame.KEYUP and event.key == pygame.K_e and display_ship:
                     ship.hyperspace()
                 if event.type == pygame.USEREVENT:
-                    asteroid_list.append(asteroids_file.Asteroid(surface, double_range(size), pygame.Color("white"), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2))), 30, size))
+                    asteroid_list.append(create_asteroid(surface, 1, double_range(size), (random.choice((-2,-1, -0.5, 0.5, 1, 2)), random.choice((-2,-1, -0.5, 0.5, 1, 2)))))
                 if event.type == pygame.USEREVENT + 1 and ufo != None:
                     ufo_bullet_list.append(ufo.shoot())
                 if event.type == pygame.USEREVENT + 2 and ufo == None:
@@ -97,6 +101,15 @@ def main():
                         ufo = ufo_file.UFO(surface, double_range(size), object_color, random.choice((random.randint(-2,-1), random.randint(1,2))), size)
                     else:
                         ufo = ufo_file.small_UFO(surface, double_range(size), object_color, random.choice((random.randint(-2,-1), random.randint(1,2))), size)
+                if event.type == pygame.USEREVENT + 3:
+                    display_ship = False
+                    ship_collision = False
+                    pygame.time.set_timer(pygame.USEREVENT + 4, 2500, True)
+                if event.type == pygame.USEREVENT + 4:
+                    display_ship = True
+                    pygame.time.set_timer(pygame.USEREVENT + 5, 2500, True)
+                if event.type == pygame.USEREVENT + 5:
+                    ship_collision = True
             if main_menu_display and event.type == pygame.MOUSEBUTTONUP and within_bounds(main_menu):
                 main_menu_display = False
         ''' End of handling pygame events '''
@@ -111,7 +124,17 @@ def main():
                 pygame.draw.rect(surface, pygame.Color("white"), rect, width = 3)
         elif not main_menu_display:
             scoreboard.render()
-            ship.draw()
+            if ship_collision == False and display_ship: 
+                time += game_clock.get_time()
+                print(time)
+                if time >= 500:
+                    time = 0
+                elif 300 <= time:
+                    pass
+                else:
+                    ship.draw()
+            elif display_ship == True:
+                ship.draw()
 
             if ufo != None:
                 ufo.draw()
@@ -174,14 +197,12 @@ def main():
                         to_be_removed.append(i)
                         asteroid_to_be_removed.append(j)
                         asteroid_list = asteroid_list + j.collision_bullet(i)
-                        scoreboard.increment(j.radius * 100, ship)
-
-
+                        scoreboard.increment(int((1/j.scale) * 300), ship)
 
             #For every ufo bullet check if it hits the ship or if it hits an asteroid
             for i in ufo_bullet_list:
                 a = ship_rebirth(ship.collision_bullet(i), ship, scoreboard, ufo)
-                if a:
+                if a:  
                     continue_game = False
                 for j in asteroid_list:
                     if j.collision_bullet(i) != None:
@@ -195,10 +216,20 @@ def main():
                     asteroid_to_be_removed.append(i)
                     asteroid_list = asteroid_list + i.collision_UFO(ufo)
 
-            if ufo != None:
+            if ufo != None and (ship_collision and display_ship):
                 a = ship_rebirth(ufo.collision_ship(ship), ship, scoreboard, ufo)
                 if a:
                     continue_game = False
+
+            if ship_collision and display_ship :
+                for i in asteroid_list:
+                    collision_results = i.collision_ship(ship)
+                    if collision_results:
+                        asteroid_to_be_removed.append(i)
+                        asteroid_list += i.collision_ship2(ship)
+                    end_game = ship_rebirth(collision_results, ship, scoreboard, ufo)
+                    if end_game:
+                        continue_game = not end_game
 
             for i in to_be_removed:
                 if i in bullet_list:
@@ -218,19 +249,15 @@ def main():
                 timer = 3000
                 pygame.time.set_timer(pygame.USEREVENT, timer)
 
-            for i in asteroid_list:
-                end_game = ship_rebirth(i.collision_ship(ship), ship, scoreboard, ufo)
-                if end_game:
-                    continue_game = not end_game
-
-            if pygame.key.get_pressed()[119] == 1:
-                ship.accelerate(0.03)
-            if pygame.key.get_pressed()[97] == 1:
-                ship.rotate(3)
-                ship.mask_update()
-            if pygame.key.get_pressed()[100] == 1:
-                ship.rotate(-3)
-                ship.mask_update()
+            if display_ship:
+                if pygame.key.get_pressed()[119] == 1:
+                    ship.accelerate(0.03)
+                if pygame.key.get_pressed()[97] == 1:
+                    ship.rotate(3)
+                    ship.mask_update()
+                if pygame.key.get_pressed()[100] == 1:
+                    ship.rotate(-3)
+                    ship.mask_update()
         game_clock.tick(FPS)
 
 main()
